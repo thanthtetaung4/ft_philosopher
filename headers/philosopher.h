@@ -34,7 +34,6 @@ typedef struct s_env
 	t_input_data	input;
 	t_philo			*philo;
 	pthread_t		checker;
-	pthread_t		checker;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	write;
 }	t_env;

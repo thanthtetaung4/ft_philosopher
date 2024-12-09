@@ -6,7 +6,7 @@
 /*   By: taung <taung@student.42singapore.fr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/08 13:52:46 by taung             #+#    #+#             */
-/*   Updated: 2024/12/08 14:55:03 by taung            ###   ########.fr       */
+/*   Updated: 2024/12/09 12:10:35 by taung            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ int	main(int argc, char **argv)
 		if (argc == 5)
 		{
 			printf("do smth with 4 args\n");
-
+			
 		}
 		else if (argc == 6)
 		{
