@@ -38,8 +38,12 @@ typedef struct s_env
 	pthread_mutex_t	write;
 }	t_env;
 
+// Input Validation
+int	validation(char **inputs);
+
 // General Utils
 int		ft_atoi(const char* nptr);
+long	ft_atol(const char *nptr);
 
 // Print Utils
 void	print_data(t_input_data data);
