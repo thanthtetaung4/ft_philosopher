@@ -17,6 +17,7 @@ typedef struct s_data {
     pthread_mutex_t simulation_mutex;
     int simulation_running;
     int meals_completed;
+    long long start_time;  // Added to track simulation start time
 } t_data;
 
 typedef struct s_philo {
@@ -40,12 +41,18 @@ long long get_time(void) {
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 
+// Get relative timestamp (relative to simulation start)
+long long get_relative_time(long long start_time) {
+    return get_time() - start_time;
+}
+
 // Print philosopher state with timestamp
 void print_state(t_philo *philo, char *state) {
     pthread_mutex_lock(&philo->data->print_mutex);
     pthread_mutex_lock(&philo->data->simulation_mutex);
     if (philo->data->simulation_running) {
-        printf("%lld %d %s\n", get_time(), philo->id, state);
+        // Print relative time since simulation start
+        printf("%lld %d %s\n", get_relative_time(philo->data->start_time), philo->id, state);
     }
     pthread_mutex_unlock(&philo->data->simulation_mutex);
     pthread_mutex_unlock(&philo->data->print_mutex);
@@ -53,14 +60,22 @@ void print_state(t_philo *philo, char *state) {
 
 // Handle single philosopher case
 void handle_single_philosopher(t_philo *philo) {
+    // print_state(philo, "has taken a fork");
+    // usleep(philo->time_to_die * 1000);
+    // pthread_mutex_lock(&philo->data->simulation_mutex);
+    // philo->data->simulation_running = 0;
+    // pthread_mutex_unlock(&philo->data->simulation_mutex);
+    // pthread_mutex_lock(&philo->data->print_mutex);
+    // printf("%lld %d died\n", get_relative_time(philo->data->start_time), philo->id);
+    // pthread_mutex_unlock(&philo->data->print_mutex);
+
     print_state(philo, "has taken a fork");
     usleep(philo->time_to_die * 1000);
+
+    // Just update the last_meal_time and let the monitor handle the death
     pthread_mutex_lock(&philo->data->simulation_mutex);
     philo->data->simulation_running = 0;
     pthread_mutex_unlock(&philo->data->simulation_mutex);
-    pthread_mutex_lock(&philo->data->print_mutex);
-    printf("%lld %d died\n", get_time(), philo->id);
-    pthread_mutex_unlock(&philo->data->print_mutex);
 }
 
 // Monitor thread routine
@@ -78,7 +93,7 @@ void *monitor(void *arg) {
                 philos[i].data->simulation_running = 0;
                 pthread_mutex_unlock(&philos[i].data->simulation_mutex);
                 pthread_mutex_lock(&philos[i].data->print_mutex);
-                printf("%lld %d died\n", get_time(), philos[i].id);
+                printf("%lld %d died\n", get_relative_time(philos[i].data->start_time), philos[i].id);
                 pthread_mutex_unlock(&philos[i].data->print_mutex);
                 return NULL;
             }
@@ -176,6 +191,9 @@ int main(int argc, char **argv) {
     pthread_mutex_init(&data.print_mutex, NULL);
     pthread_mutex_init(&data.simulation_mutex, NULL);
 
+    // Record simulation start time
+    data.start_time = get_time();
+
     // Initialize forks
     data.forks = malloc(sizeof(t_fork) * num_philos);
     for (int i = 0; i < num_philos; i++) {
@@ -195,7 +213,7 @@ int main(int argc, char **argv) {
         philos[i].time_to_sleep = time_to_sleep;
         philos[i].meals_to_eat = meals_to_eat;
         philos[i].meals_eaten = 0;
-        philos[i].last_meal_time = get_time();
+        philos[i].last_meal_time = get_time();  // Initialize with current time
         philos[i].left_fork = &data.forks[i];
         philos[i].right_fork = &data.forks[(i + 1) % num_philos];
         philos[i].data = &data;
