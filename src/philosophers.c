@@ -18,7 +18,6 @@ typedef struct s_data {
     int simulation_running;
     int meals_completed;
     long long start_time;  // Added to track simulation start time
-    int all_ate;           // Flag to track if all philosophers ate required meals
 } t_data;
 
 typedef struct s_philo {
@@ -63,11 +62,6 @@ void print_state(t_philo *philo, char *state) {
 void handle_single_philosopher(t_philo *philo) {
     print_state(philo, "has taken a fork");
     usleep(philo->time_to_die * 1000);
-
-    // Just update the last_meal_time and let the monitor handle the death
-    pthread_mutex_lock(&philo->data->simulation_mutex);
-    philo->data->simulation_running = 0;
-    pthread_mutex_unlock(&philo->data->simulation_mutex);
 }
 
 // Monitor thread routine
@@ -102,22 +96,17 @@ void *monitor(void *arg) {
         if (philos[0].meals_to_eat != -1 && all_meals_completed) {
             pthread_mutex_lock(&philos[0].data->simulation_mutex);
             philos[0].data->simulation_running = 0;
-            philos[0].data->all_ate = 1;  // Set the flag that all ate required meals
             pthread_mutex_unlock(&philos[0].data->simulation_mutex);
-
-            // Print completion message
-            pthread_mutex_lock(&philos[0].data->print_mutex);
-            printf("%lld All philosophers have eaten %d times each. Simulation complete.\n",
-                    get_relative_time(philos[0].data->start_time), philos[0].meals_to_eat);
-            pthread_mutex_unlock(&philos[0].data->print_mutex);
-
             return NULL;
         }
 
         pthread_mutex_lock(&philos[0].data->simulation_mutex);
         simulation_running = philos[0].data->simulation_running;
         pthread_mutex_unlock(&philos[0].data->simulation_mutex);
-        usleep(1000);
+        // usleep((philos->time_to_die/2) * 1000);
+        usleep(5000);
+        // 4 410 200 200 10
+
     }
     return NULL;
 }
@@ -136,19 +125,34 @@ void *philosopher(void *arg) {
         pthread_mutex_lock(&philo->data->simulation_mutex);
         if (!philo->data->simulation_running) {
             pthread_mutex_unlock(&philo->data->simulation_mutex);
+            pthread_mutex_unlock(&philo->left_fork->mutex);
+            pthread_mutex_unlock(&philo->right_fork->mutex);
             break;
         }
         pthread_mutex_unlock(&philo->data->simulation_mutex);
 
         // Take forks
-        pthread_mutex_lock(&philo->left_fork->mutex);
-        print_state(philo, "has taken a fork");
-        pthread_mutex_lock(&philo->right_fork->mutex);
-        print_state(philo, "has taken a fork");
+        if (philo->id == philo->num_philos - 1)
+        {
+            pthread_mutex_lock(&philo->right_fork->mutex);
+            print_state(philo, "has taken a fork");
+            pthread_mutex_lock(&philo->left_fork->mutex);
+            print_state(philo, "has taken a fork");
+        }
+        else
+        {
+
+            pthread_mutex_lock(&philo->left_fork->mutex);
+            print_state(philo, "has taken a fork");
+            pthread_mutex_lock(&philo->right_fork->mutex);
+            print_state(philo, "has taken a fork");
+        }
 
         // Eat
         print_state(philo, "is eating");
+        pthread_mutex_lock(&philo->data->simulation_mutex);
         philo->last_meal_time = get_time();
+        pthread_mutex_unlock(&philo->data->simulation_mutex);
         usleep(philo->time_to_eat * 1000);
         philo->meals_eaten++;
 
@@ -162,6 +166,10 @@ void *philosopher(void *arg) {
 
         // Think
         print_state(philo, "is thinking");
+        int time_to_think = ((philo->time_to_die - (philo->time_to_eat + philo->time_to_sleep))/2);
+        if (time_to_think > 0) {
+            usleep(time_to_think * 1000);
+        }
     }
     return NULL;
 }
@@ -188,7 +196,6 @@ int main(int argc, char **argv) {
     data.num_philos = num_philos;
     data.simulation_running = 1;
     data.meals_completed = 0;
-    data.all_ate = 0;  // Initialize all_ate flag
     pthread_mutex_init(&data.print_mutex, NULL);
     pthread_mutex_init(&data.simulation_mutex, NULL);
 
@@ -235,15 +242,6 @@ int main(int argc, char **argv) {
     // Wait for philosopher threads to finish
     for (int i = 0; i < num_philos; i++) {
         pthread_join(philo_threads[i], NULL);
-    }
-
-    // Print final status message
-    if (data.all_ate) {
-        printf("Simulation ended successfully: All philosophers ate the required meals.\n");
-    } else if (num_philos == 1) {
-        printf("Simulation ended: The lone philosopher has died of starvation.\n");
-    } else {
-        printf("Simulation ended: A philosopher has died.\n");
     }
 
     // Cleanup
