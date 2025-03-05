@@ -74,8 +74,8 @@ void *monitor(void *arg) {
         all_meals_completed = 1;
         for (int i = 0; i < philos[0].num_philos; i++) {
             // Check for death
+            pthread_mutex_lock(&philos[i].data->simulation_mutex);
             if (get_time() - philos[i].last_meal_time > philos[i].time_to_die) {
-                pthread_mutex_lock(&philos[i].data->simulation_mutex);
                 philos[i].data->simulation_running = 0;
                 pthread_mutex_unlock(&philos[i].data->simulation_mutex);
                 pthread_mutex_lock(&philos[i].data->print_mutex);
@@ -83,13 +83,17 @@ void *monitor(void *arg) {
                 pthread_mutex_unlock(&philos[i].data->print_mutex);
                 return NULL;
             }
+            else
+                pthread_mutex_unlock(&philos[i].data->simulation_mutex);
 
+            pthread_mutex_lock(&philos[i].data->simulation_mutex);
             // Check meals completion if required
             if (philos[i].meals_to_eat != -1) {
                 if (philos[i].meals_eaten < philos[i].meals_to_eat) {
                     all_meals_completed = 0;
                 }
             }
+            pthread_mutex_unlock(&philos[i].data->simulation_mutex);
         }
 
         // Check if all required meals are completed
@@ -125,8 +129,8 @@ void *philosopher(void *arg) {
         pthread_mutex_lock(&philo->data->simulation_mutex);
         if (!philo->data->simulation_running) {
             pthread_mutex_unlock(&philo->data->simulation_mutex);
-            pthread_mutex_unlock(&philo->left_fork->mutex);
-            pthread_mutex_unlock(&philo->right_fork->mutex);
+            // pthread_mutex_unlock(&philo->left_fork->mutex);
+            // pthread_mutex_unlock(&philo->right_fork->mutex);
             break;
         }
         pthread_mutex_unlock(&philo->data->simulation_mutex);
@@ -152,9 +156,9 @@ void *philosopher(void *arg) {
         print_state(philo, "is eating");
         pthread_mutex_lock(&philo->data->simulation_mutex);
         philo->last_meal_time = get_time();
+        philo->meals_eaten++;
         pthread_mutex_unlock(&philo->data->simulation_mutex);
         usleep(philo->time_to_eat * 1000);
-        philo->meals_eaten++;
 
         // Release forks
         pthread_mutex_unlock(&philo->left_fork->mutex);

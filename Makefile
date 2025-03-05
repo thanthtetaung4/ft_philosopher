@@ -1,7 +1,7 @@
 NAME = philo
 CC = cc
-CFLAGS = -Wall -Wextra -Werror
-LDFLAGS = -pthread
+CFLAGS = -Wall -Werror -Wextra -g -fsanitize=thread
+
 
 SRCS = ./src/philosophers.c
 OBJS = $(SRCS:.c=.o)
@@ -9,7 +9,7 @@ OBJS = $(SRCS:.c=.o)
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(OBJS) $(LDFLAGS) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
