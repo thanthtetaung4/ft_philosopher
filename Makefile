@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -Wall -Werror -Wextra -g -fsanitize=thread
 
 
-SRCS = ./src/philosophers.c
+SRCS = ./src/philosophers.c ./src/ft_atoi_vali.c
 OBJS = $(SRCS:.c=.o)
 
 all: $(NAME)
