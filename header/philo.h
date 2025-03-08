@@ -41,18 +41,19 @@ typedef struct s_data	t_data;
 
 typedef struct s_philo
 {
-	int					id;
-	int					num_philos;
-	int					time_to_die;
-	int					time_to_eat;
-	int					time_to_sleep;
-	int					meals_to_eat;
-	int					meals_eaten;
-	long long			last_meal_time;
-	t_fork				*left_fork;
-	t_fork				*right_fork;
-	t_data				*data;
-}						t_philo;
+	int				id;
+	int				num_philos;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				meals_to_eat;
+	int				meals_eaten;
+	long long		last_meal_time;
+	t_fork			*left_fork;
+	t_fork			*right_fork;
+	t_data			*data;
+	pthread_mutex_t	meal_mutex;
+}					t_philo;
 
 typedef struct s_data
 {

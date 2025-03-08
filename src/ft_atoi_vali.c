@@ -12,6 +12,13 @@
 
 #include "../header/philo.h"
 
+/**
+ * Converts a string to an integer and validates the conversion.
+ * Returns true if the conversion is successful and the result
+ * is within the integer range.
+ * Returns false if the string contains non-digit characters or
+ * the result is out of range.
+ */
 bool	ft_atoi_vali(const char *nptr, int *result)
 {
 	long	i;

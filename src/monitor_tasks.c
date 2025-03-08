@@ -12,14 +12,23 @@
 
 #include "../header/philo.h"
 
-// Handle single philosopher case
+/**
+ * Handles the case where there is only one philosopher.
+ * The philosopher will take a fork and wait until they die.
+ */
 void	handle_single_philosopher(t_philo *philo)
 {
 	print_state(philo, "has taken a fork");
 	usleep(philo->time_to_die * 1000);
 }
 
-// Check if a philosopher has died
+/**
+ * Checks if a philosopher has died.
+ * If a philosopher has died, it stops the simulation
+ * and prints the death message.
+ * Returns true if the philosopher has died, otherwise
+ * false.
+ */
 bool	check_philosopher_death(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->data->simulation_mutex);
@@ -37,7 +46,32 @@ bool	check_philosopher_death(t_philo *philo)
 	return (false);
 }
 
-// Check if all philosophers have completed their meals
+/**
+ * Checks if all philosophers have completed their meals.
+ * Returns true if all philosophers have completed their meals, otherwise false.
+ */
+// bool	check_meals_completion(t_philo *philos)
+// {
+// 	int		i;
+// 	bool	all_completed;
+
+// 	i = 0;
+// 	all_completed = true;
+// 	if (philos[0].meals_to_eat == -1)
+// 		return (false);
+// 	while (i < philos[0].num_philos)
+// 	{
+// 		pthread_mutex_lock(&philos[i].data->simulation_mutex);
+// 		if (philos[i].meals_to_eat != -1
+// 			&& philos[i].meals_eaten < philos[i].meals_to_eat)
+// 		{
+// 			all_completed = false;
+// 		}
+// 		pthread_mutex_unlock(&philos[i].data->simulation_mutex);
+// 		i++;
+// 	}
+// 	return (all_completed);
+// }
 bool	check_meals_completion(t_philo *philos)
 {
 	int		i;
@@ -49,19 +83,21 @@ bool	check_meals_completion(t_philo *philos)
 		return (false);
 	while (i < philos[0].num_philos)
 	{
-		pthread_mutex_lock(&philos[i].data->simulation_mutex);
+		pthread_mutex_lock(&philos[i].meal_mutex);
 		if (philos[i].meals_to_eat != -1
 			&& philos[i].meals_eaten < philos[i].meals_to_eat)
 		{
 			all_completed = false;
 		}
-		pthread_mutex_unlock(&philos[i].data->simulation_mutex);
+		pthread_mutex_unlock(&philos[i].meal_mutex);
 		i++;
 	}
 	return (all_completed);
 }
 
-// Set simulation status to stop
+/**
+ * Sets the simulation status to stop.
+ */
 void	stop_simulation(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->data->simulation_mutex);
@@ -69,7 +105,10 @@ void	stop_simulation(t_philo *philo)
 	pthread_mutex_unlock(&philo->data->simulation_mutex);
 }
 
-// Get current simulation status
+/**
+ * Gets the current simulation status.
+ * Returns true if the simulation is running, otherwise false.
+ */
 bool	get_simulation_status(t_philo *philo)
 {
 	bool	status;

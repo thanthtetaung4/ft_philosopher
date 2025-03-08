@@ -12,7 +12,13 @@
 
 #include "../header/philo.h"
 
-// Philosopher routine
+/**
+ * Philosopher routine.
+ * Each philosopher goes through the cycle of taking forks, eating,
+ * sleeping, and thinking.
+ * If there is only one philosopher, they handle the single philosopher case.
+ * The routine continues until the simulation is no longer running.
+ */
 void	*philosopher(void *arg)
 {
 	t_philo	*philo;
@@ -37,7 +43,13 @@ void	*philosopher(void *arg)
 	return (NULL);
 }
 
-// Monitor thread routine
+/**
+ * Monitor thread routine.
+ * Continuously checks if any philosopher has died or
+ if all meals are completed.
+ * Stops the simulation if a philosopher dies or all meals are completed.
+ * The routine continues until the simulation is no longer running.
+ */
 void	*monitor(void *arg)
 {
 	t_philo	*philos;
